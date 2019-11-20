@@ -1,4 +1,13 @@
 image_test_deepreid/
 sample_clips/
+
+vehicle_detect_classification_result/
 .idea/
+
+VehicleDetection/v_d_c_env/
+VehicleDetection/checkpoints/
+VehicleDetection/image_test_deepreid/
+VehicleDetection/test_imgs/
+VehicleDetection/test_result/
+t/
 
