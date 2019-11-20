@@ -70,4 +70,4 @@ def sample(num):
     print("Copy from origin to set1:%d and set2:%d. " % (len(set1_list), len(set2_list)))
 
 
-sample(200)
+sample(100)
