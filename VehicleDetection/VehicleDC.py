@@ -8,6 +8,7 @@ import pickle
 import shutil
 import random
 import argparse
+from copy import copy, deepcopy
 
 from darknet_util import *
 from darknet import Darknet
@@ -260,6 +261,8 @@ class Car_DC():
         labels = []
         pt_1s = []
         pt_2s = []
+
+        car_color, car_direction, car_type = None, None, None
    
         # 1
         for det in output:
@@ -311,6 +314,9 @@ class Car_DC():
                         cv2.FONT_HERSHEY_PLAIN, 2, [225, 255, 255], 2)
             break
 
+        return car_color, car_direction, car_type
+
+
     def process_predict(self,
                         prediction,
                         prob_th,
@@ -346,10 +352,19 @@ class Car_DC():
         return output
 
     def detect_classify(self):
+        pre_path = ''
+        color_dict = {}
+        type_dict = {}
+        cars = []
+        all_cars_per_camera = {}
+        pre_camera_id = self.imgs_path[0].split('/')[2]
+
         """
         detect and classify
         """
         for x in self.imgs_path:
+            curr_path = os.path.split(x)[0]
+
             # read image data
             img = cv2.imread(x)
             img = cv2.copyMakeBorder(img, BORDER , BORDER, BORDER, BORDER, cv2.BORDER_CONSTANT, value=(100,100,100))
@@ -373,13 +388,58 @@ class Car_DC():
             orig_img = cv2.cvtColor(np.asarray(
                 img), cv2.COLOR_RGB2BGR)  # RGB => BGR
             if type(output) != int:
-                print('\n', x)
-                self.cls_draw_bbox(output, orig_img)
+                # print('\n', x)
+                car_color, car_direction, car_type = self.cls_draw_bbox(output, orig_img)
                 dst_path = self.dst_dir + '/' + os.path.split(x)[1]
                 if not os.path.exists(dst_path):
                     cv2.imwrite(dst_path, orig_img)
+    
+            if curr_path != pre_path and pre_path != '':
+                add_to_all(all_cars_per_camera, max(color_dict, key=color_dict.get), max(type_dict, key=type_dict.get))
+                # print(all_cars_per_camera)
+
+                color_dict.clear()
+                type_dict.clear()
+
+                curr_camera_id = x.split('/')[2]
+                if curr_camera_id != pre_camera_id:
+                    cars.append(deepcopy(all_cars_per_camera))
+                    all_cars_per_camera.clear()
+                    pre_camera_id = curr_camera_id
+
+            if car_color != None:
+                if car_color not in color_dict:
+                    color_dict[car_color] = 0
+                color_dict[car_color] += 1
+
+            if car_type != None:
+                if car_type not in type_dict:
+                    type_dict[car_type] = 0
+                type_dict[car_type] += 1
+
+            pre_path = curr_path
+
+        # add the last one
+        if pre_path != '':
+            add_to_all(all_cars_per_camera, max(color_dict, key=color_dict.get), max(type_dict, key=type_dict.get))
+            # print(all_cars_per_camera)
+            color_dict.clear()
+            type_dict.clear()
+
+            cars.append(deepcopy(all_cars_per_camera))
+            all_cars_per_camera.clear()
+
+        return cars
+
 
 # -----------------------------------------------------------
+def add_to_all(all_cars_per_camera, car_color, car_type):
+    car_tuple = (car_color, car_type)
+
+    if car_tuple not in all_cars_per_camera:
+        all_cars_per_camera[car_tuple] = 0
+    all_cars_per_camera[car_tuple] += 1
+
 
 
 parser = argparse.ArgumentParser(description='Detect and classify cars.')
@@ -391,10 +451,11 @@ parser.add_argument('-dst-dir',
                     type=str,
                     default='./test_result',
                     help='destination directory of images to store results.')
-# parse.add_argument('-color', type=str, default='All' help='Specify the query color.')
+parser.add_argument('-color', type=str, default='All', help='Specify the query color.')
 
 
 if __name__ == '__main__':
+    if color 
     # ---------------------------- Car detect and classify
     # DR_model = Car_DC(src_dir='./test_imgs',
     #                   dst_dir='./test_result')
@@ -402,4 +463,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     DR_model = Car_DC(src_dir=args.src_dir, dst_dir=args.dst_dir)
-    DR_model.detect_classify()
+    cars = DR_model.detect_classify()
+
+
+    print(cars)
