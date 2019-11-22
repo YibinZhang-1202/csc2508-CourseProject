@@ -521,4 +521,4 @@ if __name__ == '__main__':
 
         print("Find %d in total." % sum(result))
 
-    print(cars)
+    print("\n", cars)

@@ -1,5 +1,6 @@
 image_test_deepreid/
 sample_clips/
+t/
 
 vehicle_detect_classification_result/
 .idea/
@@ -9,5 +10,13 @@ VehicleDetection/checkpoints/
 VehicleDetection/image_test_deepreid/
 VehicleDetection/test_imgs/
 VehicleDetection/test_result/
-t/
+
+aic19-track2-reid
+CarKeypoints/model.t7
+CarKeypoints/keypoint-query.txt
+CarKeypoints/keypoint-test.txt
+CarKeypoints/keypoint-train.txt
+Video-Person-ReID/log-test
+Video-Person-ReID/log
+venv/
 
