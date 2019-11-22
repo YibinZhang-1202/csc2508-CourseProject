@@ -359,6 +359,11 @@ class Car_DC():
         all_cars_per_camera = {}
         pre_camera_id = self.imgs_path[0].split('/')[2]
 
+        stream_i = 0
+        print("\n\nProcessing stream %d...\n" % stream_i)
+
+        tracklet_i = 0
+
         """
         detect and classify
         """
@@ -395,7 +400,11 @@ class Car_DC():
                     cv2.imwrite(dst_path, orig_img)
     
             if curr_path != pre_path and pre_path != '':
-                add_to_all(all_cars_per_camera, max(color_dict, key=color_dict.get), max(type_dict, key=type_dict.get))
+                detect_color = max(color_dict, key=color_dict.get)
+                detect_type = max(type_dict, key=type_dict.get)
+                print("Tracklet %d detects " % tracklet_i, detect_color, detect_type)
+                tracklet_i += 1
+                add_to_all(all_cars_per_camera, detect_color, detect_type)
                 # print(all_cars_per_camera)
 
                 color_dict.clear()
@@ -403,9 +412,13 @@ class Car_DC():
 
                 curr_camera_id = x.split('/')[2]
                 if curr_camera_id != pre_camera_id:
+                    print("The result of stream %d:" % stream_i, all_cars_per_camera)
                     cars.append(deepcopy(all_cars_per_camera))
                     all_cars_per_camera.clear()
                     pre_camera_id = curr_camera_id
+
+                    stream_i += 1
+                    print("\n\nProcessing stream %d...\n" % stream_i)
 
             if car_color != None:
                 if car_color not in color_dict:
@@ -421,11 +434,15 @@ class Car_DC():
 
         # add the last one
         if pre_path != '':
-            add_to_all(all_cars_per_camera, max(color_dict, key=color_dict.get), max(type_dict, key=type_dict.get))
+            detect_color = max(color_dict, key=color_dict.get)
+            detect_type = max(type_dict, key=type_dict.get)
+            print("Tracklet %d detects " % tracklet_i, detect_color, detect_type)
+            add_to_all(all_cars_per_camera, detect_color, detect_type)
             # print(all_cars_per_camera)
             color_dict.clear()
             type_dict.clear()
 
+            print("The result of stream %d:" % stream_i, all_cars_per_camera)
             cars.append(deepcopy(all_cars_per_camera))
             all_cars_per_camera.clear()
 
@@ -441,6 +458,28 @@ def add_to_all(all_cars_per_camera, car_color, car_type):
     all_cars_per_camera[car_tuple] += 1
 
 
+def find_result(cars, vehicle_color, vehicle_type):
+    pair = (vehicle_color, vehicle_type)
+    result = []
+
+    for i, c in enumerate(cars):
+        result.append(0)
+
+        if pair[0] != 'all' and pair[1] != 'all':
+            if pair in c:
+                result[i] = c[pair]
+        elif pair[0] == 'all':
+            for t in c:
+                if pair[1] == t[1]:
+                    result[i] += c[t]
+        elif pair[1] == 'all':
+            for t in c:
+                if pair[0] == t[0]:
+                    result[i] += c[t]
+
+    return result
+
+
 
 parser = argparse.ArgumentParser(description='Detect and classify cars.')
 parser.add_argument('-src-dir',
@@ -451,19 +490,35 @@ parser.add_argument('-dst-dir',
                     type=str,
                     default='./test_result',
                     help='destination directory of images to store results.')
-parser.add_argument('-color', type=str, default='All', help='Specify the query color.')
+parser.add_argument('-vehicle-color', type=str, default='all', help='Specify the query vehicle color.')
+parser.add_argument('-vehicle-type', type=str, default='all', help='Specify the query vehicle type.')
 
 
 if __name__ == '__main__':
-    if color 
+    args = parser.parse_args()
+
+    if args.vehicle_color != 'all' and args.vehicle_color not in color_attrs:
+        print("Please set a valid vehicle color from: ", color_attrs)
+        raise("args error")
+
+    if args.vehicle_type != 'all' and args.vehicle_type not in type_attrs:
+        print("Please set a valid vehicle type from: ", type_attrs)
+        raise("args error")
+
     # ---------------------------- Car detect and classify
     # DR_model = Car_DC(src_dir='./test_imgs',
     #                   dst_dir='./test_result')
     # DR_model.detect_classify()
 
-    args = parser.parse_args()
     DR_model = Car_DC(src_dir=args.src_dir, dst_dir=args.dst_dir)
     cars = DR_model.detect_classify()
 
+    if not (args.vehicle_color == 'all' and args.vehicle_type == 'all'):
+        result = find_result(cars, args.vehicle_color, args.vehicle_type)
+        print()
+        for i, d in enumerate(result):
+            print("--Find %d in stream %d." % (d, i))
+
+        print("Find %d in total." % sum(result))
 
     print(cars)
