@@ -1,6 +1,6 @@
-CUDA_VISIBLE_DEVICES=0 \
+CUDA_VISIBLE_DEVICES=1 \
 python main_video_person_reid.py \
-    --train-batch 4 \
+    --train-batch 16 \
     --workers 0 \
     --seq-len 4 \
     --arch resnet50ta_surface_nu \
@@ -11,6 +11,6 @@ python main_video_person_reid.py \
     --evaluate \
     --pretrained-model log/ta_surface_nu_checkpoint_ep300.pth.tar \
     --save-dir log-test \
-    --gpu-devices 0 \
+    --gpu-devices 1 \
     --re-ranking \
     --metadata-model v2m100

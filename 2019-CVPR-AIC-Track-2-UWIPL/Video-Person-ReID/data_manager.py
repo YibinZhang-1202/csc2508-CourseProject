@@ -31,15 +31,15 @@ class AICityTrack2(BaseVideoDataset):
     # identities: 702 (train) + 702 (test)
     # tracklets: 2196 (train) + 2636 (test)
     """
-    dataset_dir = '../../'
+    dataset_dir = '../../aic19-track2-reid/'
 
     def __init__(self, root='data', min_seq_len=0, verbose=True, **kwargs):
         self.dataset_dir = osp.join('', self.dataset_dir)
         self.dataset_url = 'http://vision.cs.duke.edu/DukeMTMC/data/misc/DukeMTMC-VideoReID.zip'
-        self.train_dir = osp.join(self.dataset_dir, 'aic19-track2-reid/image_train_deepreid')
-        #self.train_dir = osp.join(self.dataset_dir, '/media/twhuang/NewVolume1/aic19/aic19-track1-reid/track12_train/train')
-        self.query_dir = osp.join(self.dataset_dir, 'aic19-track2-reid/image_query_deepreid')
-        self.gallery_dir = osp.join(self.dataset_dir, 'aic19-track2-reid/image_test_deepreid')
+        # self.train_dir = osp.join(self.dataset_dir, '')
+        # self.train_dir = osp.join(self.dataset_dir, '/media/twhuang/NewVolume1/aic19/aic19-track1-reid/track12_train/train')
+        self.query_dir = osp.join(self.dataset_dir, 'image_query_deepreid')
+        self.gallery_dir = osp.join(self.dataset_dir, 'image_test_deepreid')
         self.split_train_json_path = osp.join(self.dataset_dir, 'split_train.json')
         self.split_train_orig_json_path = osp.join(self.dataset_dir, 'split_train_orig.json')
         self.split_query_json_path = osp.join(self.dataset_dir, 'split_query.json')
@@ -50,22 +50,22 @@ class AICityTrack2(BaseVideoDataset):
         self._check_before_run()
         print("Note: if root path is changed, the previously generated json files need to be re-generated (so delete them first)")
 
-        train = self._process_dir(self.train_dir, self.split_train_json_path, relabel=True, N_largest=0)
-        train_orig = self._process_dir(self.train_dir, self.split_train_orig_json_path, relabel=False, N_largest=0) # do not relable
+        # train = self._process_dir(self.train_dir, self.split_train_json_path, relabel=True, N_largest=0)
+        # train_orig = self._process_dir(self.train_dir, self.split_train_orig_json_path, relabel=False, N_largest=0) # do not relable
         N_largest = 0
         query = self._process_dir(self.query_dir, self.split_query_json_path, relabel=False, N_largest=N_largest)
         gallery = self._process_dir(self.gallery_dir, self.split_gallery_json_path, relabel=False, N_largest=N_largest)
         
         if verbose:
             print("=> aic19-track2-reid loaded")
-            self.print_dataset_statistics(train, query, gallery)
+            self.print_dataset_statistics(query, query, gallery)
 
-        self.train = train
-        self.train_orig = train_orig
+        # self.train = train
+        # self.train_orig = train_orig
         self.query = query
         self.gallery = gallery
         
-        self.num_train_pids, _, self.num_train_cams = self.get_videodata_info(self.train)
+        # self.num_train_pids, _, self.num_train_cams = self.get_videodata_info(self.train)
         self.num_query_pids, _, self.num_query_cams = self.get_videodata_info(self.query)
         self.num_gallery_pids, _, self.num_gallery_cams = self.get_videodata_info(self.gallery)
 
@@ -91,13 +91,13 @@ class AICityTrack2(BaseVideoDataset):
         self.gallery_small = gallery_small
         small_pids = []
         train_small = []
-        for img_paths, pid, camid in train:
-            if pid in q_pids:
-                if pid not in small_pids and len(small_pids) < num_small_pids:
-                    small_pids.append(pid)
-                if pid in small_pids:
-                    train_small.append((img_paths, pid, camid))
-        self.train_small = train_small
+        # for img_paths, pid, camid in train:
+        #     if pid in q_pids:
+        #         if pid not in small_pids and len(small_pids) < num_small_pids:
+        #             small_pids.append(pid)
+        #         if pid in small_pids:
+        #             train_small.append((img_paths, pid, camid))
+        # self.train_small = train_small
 
     def _download_data(self):
         if osp.exists(self.dataset_dir):
@@ -120,8 +120,8 @@ class AICityTrack2(BaseVideoDataset):
         """Check if all files are available before going deeper"""
         if not osp.exists(self.dataset_dir):
             raise RuntimeError("'{}' is not available".format(self.dataset_dir))
-        if not osp.exists(self.train_dir):
-            raise RuntimeError("'{}' is not available".format(self.train_dir))
+        # if not osp.exists(self.train_dir):
+        #     raise RuntimeError("'{}' is not available".format(self.train_dir))
         if not osp.exists(self.query_dir):
             raise RuntimeError("'{}' is not available".format(self.query_dir))
         if not osp.exists(self.gallery_dir):
