@@ -31,7 +31,7 @@ class AICityTrack2(BaseVideoDataset):
     # identities: 702 (train) + 702 (test)
     # tracklets: 2196 (train) + 2636 (test)
     """
-    dataset_dir = '../'
+    dataset_dir = '../../'
 
     def __init__(self, root='data', min_seq_len=0, verbose=True, **kwargs):
         self.dataset_dir = osp.join('', self.dataset_dir)

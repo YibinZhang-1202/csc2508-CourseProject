@@ -410,7 +410,7 @@ class Car_DC():
                 color_dict.clear()
                 type_dict.clear()
 
-                curr_camera_id = x.split('/')[2]
+                curr_camera_id = x.split('/')[3]
                 if curr_camera_id != pre_camera_id:
                     print("The result of stream %d:" % stream_i, all_cars_per_camera)
                     cars.append(deepcopy(all_cars_per_camera))

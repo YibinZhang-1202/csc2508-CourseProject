@@ -21,8 +21,8 @@ import os
 import shutil
 import random
 
-origin_path = "../../image_test_deepreid"  # change as you wish
-sample_path = "../../sample_clips"  # change as you wish
+origin_path = "../../aic19-track2-reid/image_test_deepreid"  # change as you wish
+sample_path = "../../aic19-track2-reid/sample_clips"  # change as you wish
 
 origin_list = os.listdir(origin_path)  # ['0001', '0002', '0003']
 for f in origin_list:

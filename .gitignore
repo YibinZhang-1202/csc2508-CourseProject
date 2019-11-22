@@ -1,22 +1,18 @@
-image_test_deepreid/
-sample_clips/
-t/
-
-vehicle_detect_classification_result/
+aic19-track2-reid/
 .idea/
 
 VehicleDetection/v_d_c_env/
-VehicleDetection/checkpoints/
 VehicleDetection/image_test_deepreid/
 VehicleDetection/test_imgs/
-VehicleDetection/test_result/
+VehicleDetection/.idea/
+VehicleDetection/checkpoints/
 
-aic19-track2-reid
-CarKeypoints/model.t7
-CarKeypoints/keypoint-query.txt
-CarKeypoints/keypoint-test.txt
-CarKeypoints/keypoint-train.txt
-Video-Person-ReID/log-test
-Video-Person-ReID/log
-venv/
+2019-CVPR-AIC-Track-2-UWIPL/.idea/
+2019-CVPR-AIC-Track-2-UWIPL/CarKeypoints/model.t7/
+2019-CVPR-AIC-Track-2-UWIPL/CarKeypoints/keypoint-query.txt/
+2019-CVPR-AIC-Track-2-UWIPL/CarKeypoints/keypoint-test.txt/
+2019-CVPR-AIC-Track-2-UWIPL/CarKeypoints/keypoint-train.txt/
+2019-CVPR-AIC-Track-2-UWIPL/Video-Person-ReID/log-test/
+2019-CVPR-AIC-Track-2-UWIPL/Video-Person-ReID/log/
+2019-CVPR-AIC-Track-2-UWIPL/Video-Person-ReID/env/
 
