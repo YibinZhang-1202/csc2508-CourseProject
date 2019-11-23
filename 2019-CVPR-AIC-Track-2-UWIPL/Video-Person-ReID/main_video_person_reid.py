@@ -446,6 +446,7 @@ def test(model, queryloader, galleryloader, pool, use_gpu, dataset, epoch, ranks
     q_metadatas = []
     if args.use_surface:
         for batch_idx, (imgs, surfaces, pids, camids, metadatas, img_paths) in enumerate(queryloader):
+            print(img_paths)
             torch.cuda.empty_cache()
             if use_gpu:
                 imgs = imgs.cuda()
@@ -1208,14 +1209,14 @@ def evaluate_feature_tracklet(qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, 
                         # f.write('\n')
 
                         # dump txt result
-                        # dump_matches_imgids(
-                        #     osp.join(args.save_dir, 'dist_rerank-%d-%d-%.2f_%04d' % (k1, k2, lambda_value, epoch + 1)),
-                        #     matches_imgids)
-                        # dump_matches_imgids(osp.join(args.save_dir, 'dist_rerank-%d-%d-%.2f_%04d_FP' % (
-                        # k1, k2, lambda_value, epoch + 1)), matches_imgids_FP)
-                        # dump_query_result(
-                        #     osp.join(args.save_dir, 'track2.txt-%d-%d-%.2f_%04d' % (k1, k2, lambda_value, epoch + 1)),
-                        #     matches_imgids)
+                        dump_matches_imgids(
+                            osp.join(args.save_dir, 'dist_rerank-%d-%d-%.2f_%04d' % (k1, k2, lambda_value, epoch + 1)),
+                            matches_imgids)
+                        dump_matches_imgids(osp.join(args.save_dir, 'dist_rerank-%d-%d-%.2f_%04d_FP' % (
+                        k1, k2, lambda_value, epoch + 1)), matches_imgids_FP)
+                        dump_query_result(
+                            osp.join(args.save_dir, 'track2.txt-%d-%d-%.2f_%04d' % (k1, k2, lambda_value, epoch + 1)),
+                            matches_imgids)
 
         # print("------------------")
         # print('\n')
