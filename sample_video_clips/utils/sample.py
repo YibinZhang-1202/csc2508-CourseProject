@@ -30,8 +30,8 @@ for f in origin_list:
         origin_list.remove(f)
 if not os.path.exists(sample_path):
     os.mkdir(sample_path)
-set1_path = os.path.join(sample_path, "set1")  # "./sample/set1/"
-set2_path = os.path.join(sample_path, "set2")  # "./sample/set2/"
+set1_path = os.path.join(sample_path, "set1_image")  # "./sample/set1/"
+set2_path = os.path.join(sample_path, "set2_image")  # "./sample/set2/"
 if not os.path.exists(set1_path):
     os.mkdir(set1_path)
 if not os.path.exists(set2_path):
@@ -43,7 +43,7 @@ def get_images(folder_list, set_name):
     Get expected images.
     Copy them to target folder.
     :param folder_list: i.e. ['0003', '0002', '0001']
-    :param set_name: target folder. i.e. "./sample/set1"
+    :param set_name: target folder. i.e. "./sample/set1_image"
     :return: # of expected clips.
     """
     for folder in folder_list:  # i.e. folder = "0001"

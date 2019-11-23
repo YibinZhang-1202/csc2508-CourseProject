@@ -34,6 +34,9 @@ parser = argparse.ArgumentParser(description='Train video model with cross entro
 # Datasets
 parser.add_argument('-d', '--dataset', type=str, default='mars',
                     choices=data_manager.get_names())
+# parser.add_argument('--query-set', type=str, default='set1', help='The dir path of query set.')
+# parser.add_argument('--test-set', type=str, default='set2', help='The dir path of test set.')
+
 parser.add_argument('-j', '--workers', default=4, type=int,
                     help="number of data loading workers (default: 4)")
 parser.add_argument('--height', type=int, default=224,
@@ -1167,8 +1170,10 @@ def evaluate_feature_tracklet(qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, 
                         # cmc, mAP = evaluate(final_dist, q_pids, g_pids, q_camids, g_camids)
                         # print("Computing CMC, mAP and matches_imgids after re-ranking - top 100")
 
-                        # cmc, mAP, matches_imgids, matches_imgids_FP, matches_gt_pred = evaluate_imgids(final_dist, q_pids, g_pids, q_camids, g_camids, q_imgids, g_imgids, 50, 100)
+                        cmc, mAP, matches_imgids, matches_imgids_FP, matches_gt_pred = evaluate_imgids(final_dist, q_pids, g_pids, q_camids, g_camids, q_imgids, g_imgids, 50, 100)
                         tracklets = evaluate_tracklets(final_dist, q_pids, g_pids, q_camids, g_camids, q_imgids, g_imgids, 50, 100)
+
+                        print(tracklets)
 
                         dump_tracklet_result(osp.join(args.save_dir, 'tracklet_rerank-%d-%d-%.2f_%04d' % (k1, k2, lambda_value, epoch + 1)), tracklets)
                         # print("after re-ranking Results ----------")
