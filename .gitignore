@@ -1,11 +1,11 @@
 aic19-track2-reid/
 .idea/
 
-VehicleDetection/v_d_c_env/
+VehicleDetection/env/
 VehicleDetection/image_test_deepreid/
 VehicleDetection/test_imgs/
 VehicleDetection/.idea/
-VehicleDetection/checkpoints/
+VehicleDetection/checkpoints/*.pth
 
 2019-CVPR-AIC-Track-2-UWIPL/.idea/
 2019-CVPR-AIC-Track-2-UWIPL/CarKeypoints/model.t7/

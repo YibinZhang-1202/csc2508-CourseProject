@@ -34,8 +34,6 @@ parser = argparse.ArgumentParser(description='Train video model with cross entro
 # Datasets
 parser.add_argument('-d', '--dataset', type=str, default='mars',
                     choices=data_manager.get_names())
-# parser.add_argument('--query-set', type=str, default='set1', help='The dir path of query set.')
-# parser.add_argument('--test-set', type=str, default='set2', help='The dir path of test set.')
 
 parser.add_argument('-j', '--workers', default=4, type=int,
                     help="number of data loading workers (default: 4)")

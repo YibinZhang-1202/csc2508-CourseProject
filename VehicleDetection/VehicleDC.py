@@ -247,8 +247,9 @@ class Car_DC():
         # self.imgs_path = [os.path.join(src_dir, x) for x in os.listdir(src_dir) if x.endswith('.jpg') or x.endswith('.png')]
 
         # MODIFIED!
-        self.imgs_path = [os.path.join(src_dir, x) for x in os.listdir(src_dir)]
+        self.imgs_path = [os.path.join(src_dir, x) for x in os.listdir(src_dir) if x.startswith('set') and x.endswith('_image')]
         self.imgs_path = [os.path.join(x, y) for x in self.imgs_path for y in os.listdir(x)]
+        self.imgs_path.sort()
         self.imgs_path = [os.path.join(x, y) for x in self.imgs_path for y in os.listdir(x)]
         self.imgs_path = [os.path.join(x, y) for x in self.imgs_path for y in os.listdir(x) if y.endswith('.jpg') or y.endswith('.png')]
 
@@ -351,13 +352,16 @@ class Car_DC():
 
         return output
 
-    def detect_classify(self):
+    def detect_classify(self, query_pair):
         pre_path = ''
         color_dict = {}
         type_dict = {}
-        cars = []
-        all_cars_per_camera = {}
-        pre_camera_id = self.imgs_path[0].split('/')[2]
+        # cars = []
+        # all_cars_per_camera = {}
+        index_list_all = []
+        index_list_per_camera = []
+
+        pre_camera_id = self.imgs_path[0].split('/')[3]
 
         stream_i = 0
         print("\n\nProcessing stream %d...\n" % stream_i)
@@ -403,21 +407,23 @@ class Car_DC():
                 detect_color = max(color_dict, key=color_dict.get)
                 detect_type = max(type_dict, key=type_dict.get)
                 print("Tracklet %d detects " % tracklet_i, detect_color, detect_type)
+                # add_to_all(all_cars_per_camera, detect_color, detect_type)
+                compare_query_append(query_pair, detect_color, detect_type, index_list_per_camera, tracklet_i)
                 tracklet_i += 1
-                add_to_all(all_cars_per_camera, detect_color, detect_type)
-                # print(all_cars_per_camera)
 
                 color_dict.clear()
                 type_dict.clear()
 
                 curr_camera_id = x.split('/')[3]
                 if curr_camera_id != pre_camera_id:
-                    print("The result of stream %d:" % stream_i, all_cars_per_camera)
-                    cars.append(deepcopy(all_cars_per_camera))
-                    all_cars_per_camera.clear()
+                    print("The query result on stream %d:" % stream_i, index_list_per_camera)
+                    index_list_all.append(deepcopy(index_list_per_camera))
+                    index_list_per_camera.clear()
+
                     pre_camera_id = curr_camera_id
 
                     stream_i += 1
+                    tracklet_i = 0
                     print("\n\nProcessing stream %d...\n" % stream_i)
 
             if car_color != None:
@@ -437,48 +443,69 @@ class Car_DC():
             detect_color = max(color_dict, key=color_dict.get)
             detect_type = max(type_dict, key=type_dict.get)
             print("Tracklet %d detects " % tracklet_i, detect_color, detect_type)
-            add_to_all(all_cars_per_camera, detect_color, detect_type)
+            compare_query_append(query_pair, detect_color, detect_type, index_list_per_camera, tracklet_i)
             # print(all_cars_per_camera)
             color_dict.clear()
             type_dict.clear()
 
-            print("The result of stream %d:" % stream_i, all_cars_per_camera)
-            cars.append(deepcopy(all_cars_per_camera))
-            all_cars_per_camera.clear()
+            print("The query result on stream %d:" % stream_i, index_list_per_camera)
+            index_list_all.append(deepcopy(index_list_per_camera))
 
-        return cars
+        return index_list_all
 
 
 # -----------------------------------------------------------
-def add_to_all(all_cars_per_camera, car_color, car_type):
-    car_tuple = (car_color, car_type)
-
-    if car_tuple not in all_cars_per_camera:
-        all_cars_per_camera[car_tuple] = 0
-    all_cars_per_camera[car_tuple] += 1
+def compare_query_append(query_pair, detect_color, detect_type, index_list_per_camera, tracklet_i):
+    if query_pair == ('all','all') or query_pair[0] == detect_color or query_pair[1] == detect_type:
+        index_list_per_camera.append((tracklet_i, (detect_color, detect_type)))
 
 
-def find_result(cars, vehicle_color, vehicle_type):
-    pair = (vehicle_color, vehicle_type)
-    result = []
+# def add_to_all(all_cars_per_camera, car_color, car_type):
+#     car_tuple = (car_color, car_type)
 
-    for i, c in enumerate(cars):
-        result.append(0)
+#     if car_tuple not in all_cars_per_camera:
+#         all_cars_per_camera[car_tuple] = 0
+#     all_cars_per_camera[car_tuple] += 1
 
-        if pair[0] != 'all' and pair[1] != 'all':
-            if pair in c:
-                result[i] = c[pair]
-        elif pair[0] == 'all':
+
+# def find_result(cars, vehicle_color, vehicle_type):
+#     pair = (vehicle_color, vehicle_type)
+#     result = []
+
+#     for i, c in enumerate(cars):
+#         result.append(0)
+
+#         if pair[0] != 'all' and pair[1] != 'all':
+#             if pair in c:
+#                 result[i] = c[pair]
+#         elif pair[0] == 'all':
+#             for t in c:
+#                 if pair[1] == t[1]:
+#                     result[i] += c[t]
+#         elif pair[1] == 'all':
+#             for t in c:
+#                 if pair[0] == t[0]:
+#                     result[i] += c[t]
+
+#     return result
+
+def dump_index_list(output_dir, query_result):
+    if not os.path.isdir(output_dir):
+        mkdir(output_dir)
+    with open(os.path.join(output_dir, 'interested_tracklets.txt'), 'w') as f:
+        for c in query_result:
             for t in c:
-                if pair[1] == t[1]:
-                    result[i] += c[t]
-        elif pair[1] == 'all':
+                f.write("%d " % t[0])
+            f.write("\n")
+
+def dump_detect_result(output_dir, query_result):
+    if not os.path.isdir(output_dir):
+        mkdir(output_dir)
+    with open(os.path.join(output_dir, 'detect_result.txt'), 'w') as f:
+        for c in query_result:
             for t in c:
-                if pair[0] == t[0]:
-                    result[i] += c[t]
-
-    return result
-
+                f.write("%s(%s,%s) " % (t[0],t[1][0],t[1][1]))
+            f.write("\n")
 
 
 parser = argparse.ArgumentParser(description='Detect and classify cars.')
@@ -510,15 +537,19 @@ if __name__ == '__main__':
     #                   dst_dir='./test_result')
     # DR_model.detect_classify()
 
+    query_pair = (args.vehicle_color, args.vehicle_type)
+
     DR_model = Car_DC(src_dir=args.src_dir, dst_dir=args.dst_dir)
-    cars = DR_model.detect_classify()
+    query_result = DR_model.detect_classify(query_pair)
 
-    if not (args.vehicle_color == 'all' and args.vehicle_type == 'all'):
-        result = find_result(cars, args.vehicle_color, args.vehicle_type)
-        print()
-        for i, d in enumerate(result):
-            print("--Find %d in stream %d." % (d, i))
+    # if not (args.vehicle_color == 'all' and args.vehicle_type == 'all'):
+    #     result = find_result(cars, args.vehicle_color, args.vehicle_type)
+    #     print()
+    #     for i, d in enumerate(result):
+    #         print("--Find %d in stream %d." % (d, i))
 
-        print("Find %d in total." % sum(result))
+    #     print("Find %d in total." % sum(result))
+    dump_index_list(args.src_dir, query_result)
+    dump_detect_result(args.src_dir, query_result)
 
-    print("\n", cars)
+    print("\n", query_result)
