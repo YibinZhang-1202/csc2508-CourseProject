@@ -16,6 +16,14 @@ from bases import BaseVideoDataset
 from video_loader import read_keypoint, keypointsSurface, surfacesAngle
 """Dataset classes"""
 
+def load_interested_list(path):
+    interested_list = []
+
+    with open(osp.join(path, 'interested_tracklets.txt'), 'r') as f:
+        for line in f:
+            interested_list.append(line.split())
+
+    return interested_list
 
 class AICityTrack2(BaseVideoDataset):
     """
@@ -52,9 +60,11 @@ class AICityTrack2(BaseVideoDataset):
 
         # train = self._process_dir(self.train_dir, self.split_train_json_path, relabel=True, N_largest=0)
         # train_orig = self._process_dir(self.train_dir, self.split_train_orig_json_path, relabel=False, N_largest=0) # do not relable
+        interested_list = load_interested_list(AICityTrack2.dataset_dir)
+
         N_largest = 0
-        query = self._process_dir(self.query_dir, self.split_query_json_path, relabel=False, N_largest=N_largest)
-        gallery = self._process_dir(self.gallery_dir, self.split_gallery_json_path, relabel=False, N_largest=N_largest)
+        query = self._process_dir(interested_list[0], self.query_dir, self.split_query_json_path, relabel=False, N_largest=N_largest)
+        gallery = self._process_dir(interested_list[1], self.gallery_dir, self.split_gallery_json_path, relabel=False, N_largest=N_largest)
         
         if verbose:
             print("=> aic19-track2-reid loaded")
@@ -127,7 +137,7 @@ class AICityTrack2(BaseVideoDataset):
         if not osp.exists(self.gallery_dir):
             raise RuntimeError("'{}' is not available".format(self.gallery_dir))
 
-    def _process_dir(self, dir_path, json_path, relabel, N_largest=0):
+    def _process_dir(self, interested_list, dir_path, json_path, relabel, N_largest=0):
         if osp.exists(json_path) and False:
             print("=> {} generated before, awesome!".format(json_path))
             split = read_json(json_path)
@@ -219,6 +229,9 @@ class AICityTrack2(BaseVideoDataset):
 
                 tracklets.append((img_paths, pid, camid))
         tracklets.sort(key=lambda x: (x[1], x[2])) # sort !!!
+
+        print(len(interested_list))
+        tracklets = [tracklets[int(i)] for i in interested_list]
 
         print("Saving split to {}".format(json_path))
         split_dict = {

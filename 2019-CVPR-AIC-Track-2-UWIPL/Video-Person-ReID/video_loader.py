@@ -115,7 +115,8 @@ def read_keypoint(img_path):
         keypoints = np.loadtxt(f, dtype=np.float32).flatten()
         keypoints = np.reshape(keypoints, (-1,3))
     #print(keypoints)
-    return keypoints    
+    return keypoints
+
 
 class VideoDataset(Dataset):
     """Video Person ReID Dataset.

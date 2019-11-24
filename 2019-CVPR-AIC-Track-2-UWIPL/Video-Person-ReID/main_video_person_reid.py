@@ -32,6 +32,8 @@ import csv # TH for aggregate_log
 
 parser = argparse.ArgumentParser(description='Train video model with cross entropy loss')
 # Datasets
+parser.add_argument('--dataset-dir', type=str, default='../../aic19-track2-reid/t')
+
 parser.add_argument('-d', '--dataset', type=str, default='mars',
                     choices=data_manager.get_names())
 
@@ -176,6 +178,7 @@ def main():
 
     print("Initializing dataset {}".format(args.dataset))
     dataset = data_manager.init_dataset(name=args.dataset)
+
     if args.use_small_dataset: # TH
         dataset.train = dataset.train_small
         dataset.query = dataset.query_small
@@ -243,6 +246,7 @@ def main():
             batch_size=args.test_batch, shuffle=False, num_workers=args.workers,
             pin_memory=pin_memory, drop_last=False,
         )
+
 
     print("Initializing model: {}".format(args.arch))
     #dataset.num_train_pids = 666 ############## !!!!!!!!!!!!!!!!!!!!!!!!!! tmp
@@ -444,7 +448,6 @@ def test(model, queryloader, galleryloader, pool, use_gpu, dataset, epoch, ranks
     q_metadatas = []
     if args.use_surface:
         for batch_idx, (imgs, surfaces, pids, camids, metadatas, img_paths) in enumerate(queryloader):
-            print(img_paths)
             torch.cuda.empty_cache()
             if use_gpu:
                 imgs = imgs.cuda()
@@ -1174,7 +1177,7 @@ def evaluate_feature_tracklet(qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, 
 
                         print(tracklets)
 
-                        dump_tracklet_result(osp.join(args.save_dir, 'tracklet_rerank-%d-%d-%.2f_%04d' % (k1, k2, lambda_value, epoch + 1)), tracklets)
+                        dump_tracklet_result(args.dataset_dir, tracklets)
                         # print("after re-ranking Results ----------")
                         # print("after re-ranking: mAP: {:.1%}".format(mAP))
                         # print("after re-ranking: CMC curve")
@@ -1225,7 +1228,6 @@ def evaluate_feature_tracklet(qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, 
         f.close()
 
     # return cmc[0]
-
 
 if __name__ == '__main__':
     main()

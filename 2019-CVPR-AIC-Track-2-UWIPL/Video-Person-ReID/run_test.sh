@@ -7,6 +7,7 @@ python main_video_person_reid.py \
     --width 224 \
     --height 224 \
     --dataset aictrack2 \
+    --dataset-dir ../../aic19-track2-reid/t/ \
     --use-surface \
     --evaluate \
     --pretrained-model log/ta_surface_nu_checkpoint_ep300.pth.tar \
