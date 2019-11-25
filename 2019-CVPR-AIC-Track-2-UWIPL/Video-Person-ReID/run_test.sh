@@ -14,4 +14,7 @@ python main_video_person_reid.py \
     --save-dir log-test \
     --gpu-devices 1 \
     --re-ranking \
-    --metadata-model v2m100
+    --metadata-model v2m100 \
+    --query-set set1 \
+    --gallery-set set2 \
+    --feature-dir log-test/feature_ep0300

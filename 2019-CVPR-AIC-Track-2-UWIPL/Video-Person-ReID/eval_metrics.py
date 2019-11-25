@@ -24,10 +24,10 @@ def dump_query_result(output_dir, matches_imgids, top_N=100):
             st = ' '.join(g_imgids)
             f.write(st + '\n')
 
-def dump_tracklet_result(output_dir, tracklet):
+def dump_tracklet_result(output_dir, tracklet, output_file):
     if not osp.isdir(output_dir):
         mkdir(output_dir)
-    with open(osp.join(output_dir, 'all_tracklets.txt'), 'w') as f:
+    with open(osp.join(output_dir, output_file), 'w') as f:
         for q_id in range(len(tracklet)):
             f.write('%s\n' % tracklet[q_id])
 
@@ -113,7 +113,7 @@ def evaluate_imgids(distmat, q_pids, g_pids, q_camids, g_camids, q_imgids, g_img
     # compute cmc curve for each query
     all_cmc = []
     all_AP = []
-    num_valid_q = 0.
+    num_valid_q = 1.
     for q_idx in range(num_q):
         # get query pid and camid
         q_pid = q_pids[q_idx]

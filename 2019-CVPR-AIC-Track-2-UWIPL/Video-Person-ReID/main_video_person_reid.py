@@ -33,9 +33,10 @@ import csv # TH for aggregate_log
 parser = argparse.ArgumentParser(description='Train video model with cross entropy loss')
 # Datasets
 parser.add_argument('--dataset-dir', type=str, default='../../aic19-track2-reid/t')
+parser.add_argument('--query-set', type=str, default='set1')
+parser.add_argument('--gallery-set', type=str, default='set2')
 
-parser.add_argument('-d', '--dataset', type=str, default='mars',
-                    choices=data_manager.get_names())
+parser.add_argument('-d', '--dataset', type=str, default='mars',choices=data_manager.get_names())
 
 parser.add_argument('-j', '--workers', default=4, type=int,
                     help="number of data loading workers (default: 4)")
@@ -146,7 +147,7 @@ parser.add_argument('--feature-dir', type=str, default='./feature')
 args = parser.parse_args()
 
 
-def main():
+def main(query_set, gallery_set, output_file):
     torch.manual_seed(args.seed)
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_devices
     use_gpu = torch.cuda.is_available()
@@ -167,7 +168,7 @@ def main():
     # load previously inferenced feature
     if args.load_feature:
         print('Load feature')
-        return test_feature(aggregate_writer)
+        return test_feature(output_file, aggregate_writer)
 
     if use_gpu:
         print("Currently using GPU {}".format(args.gpu_devices))
@@ -177,7 +178,7 @@ def main():
         print("Currently using CPU (GPU is highly recommended)")
 
     print("Initializing dataset {}".format(args.dataset))
-    dataset = data_manager.init_dataset(name=args.dataset)
+    dataset = data_manager.init_dataset(query_set, gallery_set, name=args.dataset)
 
     if args.use_small_dataset: # TH
         dataset.train = dataset.train_small
@@ -314,7 +315,7 @@ def main():
 
     if args.evaluate:
         print("Evaluate only")
-        test(model, queryloader, galleryloader, args.pool, use_gpu, dataset, args.start_epoch, [1, 5, 10, 20], aggregate_writer)
+        test(output_file, model, queryloader, galleryloader, args.pool, use_gpu, dataset, args.start_epoch, [1, 5, 10, 20], aggregate_writer)
         return
 
     if args.evaluate_multiple:
@@ -441,7 +442,7 @@ def train(model, criterion_xent, criterion_htri, criterion_bstri, optimizer, tra
                 print("Batch {}/{}\t Loss {:.6f} ({:.6f})".format(batch_idx + 1, len(trainloader), losses.val, losses.avg))
 
 
-def test(model, queryloader, galleryloader, pool, use_gpu, dataset, epoch, ranks=[1, 5, 10, 20], aggregate_writer=None):
+def test(output_file, model, queryloader, galleryloader, pool, use_gpu, dataset, epoch, ranks=[1, 5, 10, 20], aggregate_writer=None):
     model.eval()
 
     qf, q_pids, q_camids, q_imgpaths = [], [], [], []
@@ -746,9 +747,9 @@ def test(model, queryloader, galleryloader, pool, use_gpu, dataset, epoch, ranks
     if args.feature_only:
         return 0
 
-    return evaluate_feature_tracklet(qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, q_camids, g_camids, q_imgids, g_imgids, q_imgpaths, g_imgpaths, aggregate_writer, epoch, ranks)
+    return evaluate_feature_tracklet(output_file, qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, q_camids, g_camids, q_imgids, g_imgids, q_imgpaths, g_imgpaths, aggregate_writer, epoch, ranks)
 
-def test_feature(aggregate_writer):
+def test_feature(output_file, aggregate_writer):
     # read pids, camids, imgids, feature and metadata from file
     q_imgids = []
     with open(osp.join(args.feature_dir, 'q_imgids.txt'), 'r') as f:
@@ -794,7 +795,7 @@ def test_feature(aggregate_writer):
     print('g_metadatas.shape = ' + str(g_metadatas.shape))
 
     ranks=[1, 5, 10, 20]
-    return evaluate_feature_tracklet(qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, q_camids, g_camids, q_imgids, g_imgids, q_imgpaths, g_imgpaths, aggregate_writer, -1, ranks)
+    return evaluate_feature_tracklet(output_file, qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, q_camids, g_camids, q_imgids, g_imgids, q_imgpaths, g_imgpaths, aggregate_writer, -1, ranks)
 
 def evaluate_feature(qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, q_camids, g_camids, q_imgids, g_imgids, q_imgpaths, g_imgpaths, aggregate_writer, epoch, ranks):
     # metadata settings
@@ -1003,7 +1004,7 @@ def evaluate_feature(qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, q_camids,
     return cmc[0]
 
 
-def evaluate_feature_tracklet(qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, q_camids, g_camids, q_imgids, g_imgids, q_imgpaths, g_imgpaths, aggregate_writer, epoch, ranks):
+def evaluate_feature_tracklet(output_file, qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, q_camids, g_camids, q_imgids, g_imgids, q_imgpaths, g_imgpaths, aggregate_writer, epoch, ranks):
     # metadata settings
     if args.metadata_model:
         # confusion_mats_obj = np.load('./metadata/cm_%s.npy'%args.metadata_model, encoding='latin1')
@@ -1088,49 +1089,7 @@ def evaluate_feature_tracklet(qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, 
     metadata_dist = conf_pred * confusion_dist
     metadata_dist = np.sum(metadata_dist, axis=2)
 
-    ###################################################3
-    # distmat += 1000 * compute_metadata_distance_hard(qf, gf, metadata_prob_ranges)
-    ##########################################
-
-    # print('Before re-ranking')
-    # print("Computing CMC, mAP and matches_imgids - top 100")
-    # distmat = original_dist[0:query_num, query_num:all_num]
-    # cmc, mAP, matches_imgids, matches_imgids_FP, matches_gt_pred = evaluate_imgids(distmat, q_pids, g_pids, q_camids, g_camids, q_imgids, g_imgids, 50, 100)
-    # print("Results ----------")
-    # print("mAP: {:.1%}".format(mAP))
-    # print("CMC curve")
-    # for r in ranks:
-    #     print("Rank-{:<3}: {:.1%}".format(r, cmc[r - 1]))
-    # print("------------------")
-    # if aggregate_writer is not None:
-    #     aggregate_writer.writerow(
-    #         {'epoch': str(epoch + 1), 'metadata_prob_ranges': '', 'k': str(k), 'lr': str(lr), 'niter': str(niter),
-    #          'r_metadata': '', 'k1': '', 'k2': '', 'lambda_value': '', 'mAP': str(mAP), 'Rank-1': str(cmc[0]),
-    #          'Rank-5': str(cmc[4]), 'Rank-10': str(cmc[9]), 'Rank-20': str(cmc[19])})
-    #
-    # # dump txt result
-    # dump_matches_imgids(osp.join(args.save_dir, 'dist_%04d' % (epoch + 1)), matches_imgids)
-    # dump_matches_imgids(osp.join(args.save_dir, 'dist_%04d_FP' % (epoch + 1)), matches_imgids_FP)
-    # dump_query_result(osp.join(args.save_dir, 'track2.txt_%04d' % (epoch + 1)), matches_imgids)
-    #
-    # # visualization
-    # if args.visualize_ranks:
-    #     tracklets_query = []
-    #     for i in range(len(q_imgpaths)):
-    #         img_paths = q_imgpaths[i]
-    #         pid = q_pids[i]
-    #         camid = q_camids[i]
-    #         tracklets_query.append((img_paths, pid, camid))
-    #     tracklets_gallery = []
-    #     for i in range(len(g_imgpaths)):
-    #         img_paths = g_imgpaths[i]
-    #         pid = g_pids[i]
-    #         camid = g_camids[i]
-    #         tracklets_query.append((img_paths, pid, camid))
-    #     visualize_ranked_results(
-    #         distmat, (tracklets_query, tracklets_gallery),
-    #         save_dir=osp.join(args.save_dir, 'ranked_results_%04d' % (epoch + 1)), topk=20)  # TH
-
+   
     # re - ranking
     if args.re_ranking and args.metadata_model:
         # zhangping doing re-rank
@@ -1177,37 +1136,7 @@ def evaluate_feature_tracklet(qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, 
 
                         print(tracklets)
 
-                        dump_tracklet_result(args.dataset_dir, tracklets)
-                        # print("after re-ranking Results ----------")
-                        # print("after re-ranking: mAP: {:.1%}".format(mAP))
-                        # print("after re-ranking: CMC curve")
-                        # for r in ranks:
-                        #     print("after re-ranking: Rank-{:<3}: {:.1%}".format(r, cmc[r - 1]))
-                        # print("------------------")
-                        # if aggregate_writer is not None:
-                        #     aggregate_writer.writerow({'epoch': str(epoch + 1), 'metadata_prob_ranges': ';'.join(
-                        #         [(str(rb) + '-' + str(re)) for rb, re in metadata_prob_ranges]), 'k': str(k),
-                        #                                'lr': str(lr), 'niter': str(niter),
-                        #                                'r_metadata': str(r_metadata), 'k1': str(k1), 'k2': str(k2),
-                        #                                'lambda_value': str(lambda_value), 'mAP': str(mAP),
-                        #                                'Rank-1': str(cmc[0]), 'Rank-5': str(cmc[4]),
-                        #                                'Rank-10': str(cmc[9]), 'Rank-20': str(cmc[19])})
-                        # if mAP - max_mAP > 0:
-                        #     max_mAP = mAP
-                        #     print('new max_mAP')
-                        #     print('\n')
-                        #     print('right now the max_mAP is: ', max_mAP)
-                        #     print('\n')
-                        #     print('and the correspondding cmc[0] is: ', cmc[0])
-                        #     with open(osp.join(args.save_dir, 'myMAPLog'), 'a') as fMAP:
-                        #         fMAP.write('max_mAP is: ' + str(max_mAP) + ' correspondding cmc[0] is: ' + str(cmc[0]) +
-                        #                    ' the parameters are: [k1 = ' + str(k1) + ' k2 = ' + str(
-                        #             k2) + ' lambda_value = ' + str(lambda_value) + ']')
-                        #         fMAP.write('\n')
-                        # f.write('k1 = ' + str(k1) + ' k2 = ' + str(k2) + ' lambda_value = ' + str(lambda_value))
-                        # f.write('\n')
-                        # f.write('mAP = ' + str(mAP) + ' CMC[0] = ' + str(cmc[0]))
-                        # f.write('\n')
+                        dump_tracklet_result(args.dataset_dir, tracklets, output_file)
 
                         # dump txt result
                         dump_matches_imgids(
@@ -1219,15 +1148,9 @@ def evaluate_feature_tracklet(qf, gf, q_metadatas, g_metadatas, q_pids, g_pids, 
                             osp.join(args.save_dir, 'track2.txt-%d-%d-%.2f_%04d' % (k1, k2, lambda_value, epoch + 1)),
                             matches_imgids)
 
-        # print("------------------")
-        # print('\n')
-        # print('\n')
-        # print('overall the max_mAP is: ', max_mAP)
-        # print('\n')
-
         f.close()
 
-    # return cmc[0]
-
 if __name__ == '__main__':
-    main()
+    main(args.query_set, args.query_set, 'reid_result_self.txt')
+    # args.load_feature = True
+    main(args.query_set, args.gallery_set, 'reid_result_cross.txt')
