@@ -187,7 +187,7 @@ def evaluate_tracklets(distmat, q_pids, g_pids, q_camids, g_camids, q_imgids, g_
     for q_id in range(num_q):
         the_traklet_ids = []
         for g_id in range(num_g):
-            if distmat[q_id][indices[q_id][g_id]] < 0.5:
+            if distmat[q_id][indices[q_id][g_id]] < 0.35:
                 the_traklet_ids.append(indices[q_id][g_id])
             else:
                 break

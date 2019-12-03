@@ -16,14 +16,6 @@ from bases import BaseVideoDataset
 from video_loader import read_keypoint, keypointsSurface, surfacesAngle
 """Dataset classes"""
 
-def load_interested_list(path):
-    interested_list = []
-
-    with open(osp.join(path, 'interested_tracklets.txt'), 'r') as f:
-        for line in f:
-            interested_list.append(line.split())
-
-    return interested_list
 
 class AICityTrack2(BaseVideoDataset):
     """
@@ -39,10 +31,10 @@ class AICityTrack2(BaseVideoDataset):
     # identities: 702 (train) + 702 (test)
     # tracklets: 2196 (train) + 2636 (test)
     """
-    dataset_dir = '../../aic19-track2-reid/t/'
+    # dataset_dir = '../../aic19-track2-reid/t/'
 
-    def __init__(self, query_set, gallery_set, root='data', min_seq_len=0, verbose=True, **kwargs):
-        self.dataset_dir = osp.join('', self.dataset_dir)
+    def __init__(self, dataset_dir, query_set, gallery_set, interested_list_0, interested_list_1, root='data', min_seq_len=0, verbose=True, **kwargs):
+        self.dataset_dir = osp.join('', dataset_dir)
         self.dataset_url = 'http://vision.cs.duke.edu/DukeMTMC/data/misc/DukeMTMC-VideoReID.zip'
         # self.train_dir = osp.join(self.dataset_dir, '')
         # self.train_dir = osp.join(self.dataset_dir, '/media/twhuang/NewVolume1/aic19/aic19-track1-reid/track12_train/train')
@@ -60,11 +52,10 @@ class AICityTrack2(BaseVideoDataset):
 
         # train = self._process_dir(self.train_dir, self.split_train_json_path, relabel=True, N_largest=0)
         # train_orig = self._process_dir(self.train_dir, self.split_train_orig_json_path, relabel=False, N_largest=0) # do not relable
-        interested_list = load_interested_list(AICityTrack2.dataset_dir)
-
+    
         N_largest = 0
-        query = self._process_dir(interested_list[0], self.query_dir, self.split_query_json_path, relabel=False, N_largest=N_largest)
-        gallery = self._process_dir(interested_list[1], self.gallery_dir, self.split_gallery_json_path, relabel=False, N_largest=N_largest)
+        query = self._process_dir(interested_list_0, self.query_dir, self.split_query_json_path, relabel=False, N_largest=N_largest)
+        gallery = self._process_dir(interested_list_1, self.gallery_dir, self.split_gallery_json_path, relabel=False, N_largest=N_largest)
         
         if verbose:
             print("=> aic19-track2-reid loaded")
@@ -461,7 +452,6 @@ class AICityTrack1(BaseVideoDataset):
         write_json(split_dict, json_path)
 
         return tracklets
-
 
 class DukeMTMCVidReID(BaseVideoDataset):
     """
@@ -1017,10 +1007,10 @@ __factory = {
 def get_names():
     return __factory.keys()
 
-def init_dataset(query_set, gallery_set, name, *args, **kwargs):
+def init_dataset(dataset_dir, query_set, gallery_set, interested_list_0, interested_list_1, name, *args, **kwargs):
     if name not in __factory.keys():
         raise KeyError("Unknown dataset: {}".format(name))
-    return __factory[name](query_set, gallery_set, *args, **kwargs)
+    return __factory[name](dataset_dir, query_set, gallery_set, interested_list_0, interested_list_1, *args, **kwargs)
 
 if __name__ == '__main__':
     # test

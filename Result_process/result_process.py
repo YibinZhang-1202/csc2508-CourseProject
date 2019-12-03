@@ -22,25 +22,39 @@ def read_reid_result(path):
 	with open(path, 'r') as f:
 		for line in f:
 			the_line = line.split('[')[1].split(']')[0]
-			the_line = the_line.split()
-			the_line = [int(x) for x in the_line]
+			the_line = the_line.split(',')
+			the_line = [int(x) for x in the_line if x != '']
 			reid_result.append(the_line)
 
 	return reid_result
 
-def remove_self(detect_result, reid_result):
-	for i, d in enumerate(reid_result):
+def remove_self(detect_result, reid_result_self_1, reid_result_self_2):
+	for i, d in enumerate(reid_result_self_1):
+		if i in d:
+			d.remove(i)
+
+	for i, d in enumerate(reid_result_self_2):
 		if i in d:
 			d.remove(i)
 
 	pop_times = 0
 
-	for i in reid_result:
+	for i in reid_result_self_1:
 		i.sort()
 		for j in i:
-			reid_result[j].clear()
+			reid_result_self_1[j].clear()
 			detect_result[0].pop(j-pop_times)
 			pop_times += 1
+
+	pop_times = 0
+
+	for i in reid_result_self_2:
+		i.sort()
+		for j in i:
+			reid_result_self_2[j].clear()
+			detect_result[1].pop(j-pop_times)
+			pop_times += 1
+
 
 def remove_cross(detect_result, reid_result):
 	duplicate_set = set()
@@ -110,18 +124,19 @@ parser.add_argument('-reid-result-cross', type=str, default='reid_result_cross.t
 
 def main():
 	detect_result = read_detect_result(os.path.join(args.dir_path, args.detect_result))
-	# print(detect_result)
+	print(detect_result)
 
-	reid_result_self = read_reid_result(os.path.join(args.dir_path, args.reid_result_self))
-	remove_self(detect_result, reid_result_self)
+	reid_result_self_1 = read_reid_result(os.path.join(args.dir_path, args.reid_result_self.split('.')[0] + '_1.' + args.reid_result_self.split('.')[1]))
+	reid_result_self_2 = read_reid_result(os.path.join(args.dir_path, args.reid_result_self.split('.')[0] + '_2.' + args.reid_result_self.split('.')[1]))
+	remove_self(detect_result, reid_result_self_1, reid_result_self_2)
 
 	# print(reid_result_self)
-	# print(detect_result)
+	print(detect_result)
 
 	reid_result_cross = read_reid_result(os.path.join(args.dir_path, args.reid_result_cross))
 	remove_cross(detect_result, reid_result_cross)
-	# print(reid_result_cross)
-	# print(detect_result)
+	# # print(reid_result_cross)
+	print(detect_result)
 
 	color_dict = aggregate_color(detect_result)
 	print(color_dict)

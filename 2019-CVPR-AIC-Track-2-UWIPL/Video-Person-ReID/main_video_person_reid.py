@@ -147,7 +147,17 @@ parser.add_argument('--feature-dir', type=str, default='./feature')
 args = parser.parse_args()
 
 
-def main(query_set, gallery_set, output_file):
+def load_interested_list(path):
+    interested_list = []
+
+    with open(osp.join(path, 'interested_tracklets.txt'), 'r') as f:
+        for line in f:
+            interested_list.append(line.split())
+
+    return interested_list
+
+
+def main(query_set, gallery_set, interested_list_0, interested_list_1, output_file):
     torch.manual_seed(args.seed)
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_devices
     use_gpu = torch.cuda.is_available()
@@ -178,7 +188,7 @@ def main(query_set, gallery_set, output_file):
         print("Currently using CPU (GPU is highly recommended)")
 
     print("Initializing dataset {}".format(args.dataset))
-    dataset = data_manager.init_dataset(query_set, gallery_set, name=args.dataset)
+    dataset = data_manager.init_dataset(args.dataset_dir, query_set, gallery_set, interested_list_0, interested_list_1, name=args.dataset)
 
     if args.use_small_dataset: # TH
         dataset.train = dataset.train_small
@@ -1151,6 +1161,9 @@ def evaluate_feature_tracklet(output_file, qf, gf, q_metadatas, g_metadatas, q_p
         f.close()
 
 if __name__ == '__main__':
-    main(args.query_set, args.query_set, 'reid_result_self.txt')
+    interested_list = load_interested_list(args.dataset_dir)
+
+    main(args.query_set, args.query_set, interested_list[0], interested_list[0], 'reid_result_self_1.txt')
+    main(args.gallery_set, args.gallery_set, interested_list[1], interested_list[1], 'reid_result_self_2.txt')
     # args.load_feature = True
-    main(args.query_set, args.gallery_set, 'reid_result_cross.txt')
+    main(args.query_set, args.gallery_set, interested_list[0], interested_list[1], 'reid_result_cross.txt')
