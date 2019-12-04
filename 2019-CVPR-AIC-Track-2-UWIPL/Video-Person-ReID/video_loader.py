@@ -241,6 +241,8 @@ class VideoDataset_SURFACE(Dataset):
 
     def __getitem__(self, index):
         img_paths, pid, camid = self.dataset[index]
+        # print(img_paths)
+        # print("\n", pid)
         num = len(img_paths)
         keypoint_conf_thresh = 0.6#999
         if self.sample == 'random':

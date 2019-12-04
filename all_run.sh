@@ -1,12 +1,13 @@
 # run vehicle detection
+deactivate
 cd VehicleDetection
 source ./env/bin/activate
 CUDA_VISIBLE_DEVICES=0 \
 python3 VehicleDC.py \
-	-src-dir ../aic19-track2-reid/t \
-	-dst-dir ../aic19-track2-reid/t/vehicle_detect_classification_result \
+	-src-dir ../aic19-track2-reid/small_example \
+	-dst-dir ../aic19-track2-reid/small_example/vehicle_detect_classification_result \
 	-vehicle-color all \
-	-vehicle-type saloonCar
+	-vehicle-type all
 cd ..
 
 # run reid
@@ -22,7 +23,7 @@ python main_video_person_reid.py \
     --width 224 \
     --height 224 \
     --dataset aictrack2 \
-    --dataset-dir ../../aic19-track2-reid/t/ \
+    --dataset-dir ../../aic19-track2-reid/small_example/ \
     --use-surface \
     --evaluate \
     --pretrained-model log/ta_surface_nu_checkpoint_ep300.pth.tar \
@@ -39,7 +40,7 @@ cd ../..
 deactivate
 cd Result_process
 python3 result_process.py \
-	-dir-path ../aic19-track2-reid/t/ \
+	-dir-path ../aic19-track2-reid/small_example/ \
 	-detect-result detect_result.txt \
 	-reid-result-self reid_result_self.txt \
 	-reid-result-cross reid_result_cross.txt

@@ -137,7 +137,7 @@ class AICityTrack2(BaseVideoDataset):
         print("=> Automatically generating split (might take a while for the first time, have a coffe)")
         pdirs = glob.glob(osp.join(dir_path, '*/*')) # avoid .DS_Store
         print("Processing '{}' with {} person identities".format(dir_path, len(pdirs)))
-
+        # print(pdirs)
         pid_container = set()
         for pdir in pdirs:
             #print(pdir)
@@ -221,7 +221,7 @@ class AICityTrack2(BaseVideoDataset):
 
                 tracklets.append((img_paths, pid, camid))
         tracklets.sort(key=lambda x: (x[1], x[2])) # sort !!!
-
+        tracklets.sort()
         print(len(interested_list))
         tracklets = [tracklets[int(i)] for i in interested_list]
 
