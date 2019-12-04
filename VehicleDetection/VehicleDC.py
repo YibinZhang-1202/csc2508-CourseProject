@@ -400,8 +400,8 @@ class Car_DC():
                 # print('\n', x)
                 car_color, car_direction, car_type = self.cls_draw_bbox(output, orig_img)
                 dst_path = self.dst_dir + '/' + os.path.split(x)[1]
-                if not os.path.exists(dst_path):
-                    cv2.imwrite(dst_path, orig_img)
+                # if not os.path.exists(dst_path):
+                    # cv2.imwrite(dst_path, orig_img)
     
             if curr_path != pre_path and pre_path != '':
                 detect_color = max(color_dict, key=color_dict.get)

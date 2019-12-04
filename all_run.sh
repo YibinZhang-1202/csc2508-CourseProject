@@ -1,5 +1,4 @@
 # run vehicle detection
-deactivate
 cd VehicleDetection
 source ./env/bin/activate
 CUDA_VISIBLE_DEVICES=0 \
@@ -44,6 +43,3 @@ python3 result_process.py \
 	-detect-result detect_result.txt \
 	-reid-result-self reid_result_self.txt \
 	-reid-result-cross reid_result_cross.txt
-
-
-echo $(pwd)

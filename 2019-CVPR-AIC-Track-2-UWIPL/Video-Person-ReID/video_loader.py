@@ -110,7 +110,7 @@ def surfacesAngle(surfaces):
 
 def read_keypoint(img_path):
     """Read keypoint from file"""
-    keypoint_path = img_path.replace('image', 'keypoint').replace('.jpg', '.txt')
+    keypoint_path = img_path.replace('image', 'keypoint').replace('.jpg', '.txt')    
     with open(keypoint_path, 'r') as f:
         keypoints = np.loadtxt(f, dtype=np.float32).flatten()
         keypoints = np.reshape(keypoints, (-1,3))

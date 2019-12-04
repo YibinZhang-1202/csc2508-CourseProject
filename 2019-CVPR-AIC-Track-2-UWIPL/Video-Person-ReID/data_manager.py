@@ -135,7 +135,7 @@ class AICityTrack2(BaseVideoDataset):
             return split['tracklets']
 
         print("=> Automatically generating split (might take a while for the first time, have a coffe)")
-        pdirs = glob.glob(osp.join(dir_path, '*')) # avoid .DS_Store
+        pdirs = glob.glob(osp.join(dir_path, '*/*')) # avoid .DS_Store
         print("Processing '{}' with {} person identities".format(dir_path, len(pdirs)))
 
         pid_container = set()
@@ -143,10 +143,10 @@ class AICityTrack2(BaseVideoDataset):
             #print(pdir)
             ss = pdir.split("/")
             #print(ss)
-            #print(ss)
             #print("!!!!!!!!!!!!")
             #print(pdir)
             #import pdb; pdb.set_trace()
+            # print(ss)
             pid = int(osp.basename(ss[-1].replace(".jpg","")))
             pid_container.add(pid)
         pid2label = {pid:label for label, pid in enumerate(pid_container)}
@@ -159,7 +159,8 @@ class AICityTrack2(BaseVideoDataset):
             #print(pdir)
             pid = int(osp.basename(ss[-1].replace(".jpg","")))
             if relabel: pid = pid2label[pid]
-            tdirs = glob.glob(osp.join(pdir, '*'))
+            # tdirs = glob.glob(osp.join(pdir, '*'))
+            tdirs = glob.glob(pdir)
             for tdir in tdirs:
 
                 #print(tdir)
