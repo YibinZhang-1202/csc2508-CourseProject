@@ -404,11 +404,12 @@ class Car_DC():
                     # cv2.imwrite(dst_path, orig_img)
     
             if curr_path != pre_path and pre_path != '':
+                start_length = os.path.split(os.path.split(pre_path)[0])[1]
                 detect_color = max(color_dict, key=color_dict.get)
                 detect_type = max(type_dict, key=type_dict.get)
                 print("Tracklet %d detects " % tracklet_i, detect_color, detect_type)
                 # add_to_all(all_cars_per_camera, detect_color, detect_type)
-                compare_query_append(query_pair, detect_color, detect_type, index_list_per_camera, tracklet_i)
+                compare_query_append(query_pair, detect_color, detect_type, index_list_per_camera, tracklet_i, start_length)
                 tracklet_i += 1
 
                 color_dict.clear()
@@ -440,10 +441,11 @@ class Car_DC():
 
         # add the last one
         if pre_path != '':
+            start_length = os.path.split(os.path.split(pre_path)[0])[1]
             detect_color = max(color_dict, key=color_dict.get)
             detect_type = max(type_dict, key=type_dict.get)
             print("Tracklet %d detects " % tracklet_i, detect_color, detect_type)
-            compare_query_append(query_pair, detect_color, detect_type, index_list_per_camera, tracklet_i)
+            compare_query_append(query_pair, detect_color, detect_type, index_list_per_camera, tracklet_i, start_length)
             # print(all_cars_per_camera)
             color_dict.clear()
             type_dict.clear()
@@ -455,9 +457,9 @@ class Car_DC():
 
 
 # -----------------------------------------------------------
-def compare_query_append(query_pair, detect_color, detect_type, index_list_per_camera, tracklet_i):
+def compare_query_append(query_pair, detect_color, detect_type, index_list_per_camera, tracklet_i, start_length):
     if query_pair == ('all','all') or query_pair[0] == detect_color or query_pair[1] == detect_type:
-        index_list_per_camera.append((tracklet_i, (detect_color, detect_type)))
+        index_list_per_camera.append((tracklet_i, (detect_color, detect_type, start_length)))
 
 
 # def add_to_all(all_cars_per_camera, car_color, car_type):
@@ -504,7 +506,7 @@ def dump_detect_result(output_dir, query_result):
     with open(os.path.join(output_dir, 'detect_result.txt'), 'w') as f:
         for c in query_result:
             for t in c:
-                f.write("%s(%s,%s) " % (t[0],t[1][0],t[1][1]))
+                f.write("%s(%s,%s),%s " % (t[0],t[1][0],t[1][1],t[1][2]))
             f.write("\n")
 
 
