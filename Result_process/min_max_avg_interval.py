@@ -103,16 +103,43 @@ def compute_average(count_interval, interval_size, batch_size):
 
 def compute_min(count_interval, interval_size, batch_size):
 	the_min = 0
+	interval_list = []
 	num_intervals = math.ceil(batch_size/interval_size)
 
-	if num_intervals >= len(count_interval):
+	if num_intervals == len(count_interval):
 		the_min = sys.maxsize
-		print(num_intervals)
 		for e in count_interval.values():
 			if e < the_min:
 				the_min = e
 
-	return the_min
+		for key in count_interval:
+			if count_interval[key] == the_min:
+				interval_list.append((key, key+interval_size))
+	else:
+		for x in range(0, num_intervals):
+			interval_list.append((x*interval_size, x*interval_size+interval_size))
+
+	return the_min, interval_list
+
+def compute_max(count_interval, interval_size, batch_size):
+	interval_list = []
+	the_max = 0
+
+	if len(count_interval) != 0:
+		for e in count_interval.values():
+			if e > the_max:
+				the_max = e
+
+	if the_max != 0:
+		for key in count_interval:
+			if count_interval[key] == the_max:
+				interval_list.append((key, key+interval_size))
+	else:
+		num_intervals = math.ceil(batch_size/interval_size)
+		for x in range(0, num_intervals):
+			interval_list.append((x*interval_size, x*interval_size+interval_size))
+
+	return the_max, interval_list
 
 
 parser = argparse.ArgumentParser(description='Process detect and reid results.')
@@ -148,8 +175,11 @@ def main():
 	average = compute_average(count_interval, args.interval_size, args.batch_size)
 	# print(average)
 
-	the_min = compute_min(count_interval, args.interval_size, args.batch_size)
-	print(the_min)
+	the_max, max_interval_list = compute_max(count_interval, args.interval_size, args.batch_size)
+	# print(the_max, max_interval_list)
+
+	the_min, min_interval_list = compute_min(count_interval, args.interval_size, 70)
+	print(the_min, min_interval_list)
 
 
 if __name__ == '__main__':
