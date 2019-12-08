@@ -1,5 +1,6 @@
 aic19-track2-reid/
 .idea/
+__pycache__/
 
 VehicleDetection/env/
 VehicleDetection/image_test_deepreid/
@@ -16,3 +17,5 @@ VehicleDetection/checkpoints/*.pth
 2019-CVPR-AIC-Track-2-UWIPL/Video-Person-ReID/log/
 2019-CVPR-AIC-Track-2-UWIPL/Video-Person-ReID/env/
 
+pytorch_objectdetecttrack/config/yolov3.weights
+pytorch_objectdetecttrack/env/
